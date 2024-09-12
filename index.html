@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute Minecraft-style Villagers Line-up</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        const students = ['Alisa', 'Amjad', 'Antonia', 'Aria', 'Baris', 'Hassan', 'Ilinea', 'Jasraj', 'Karim', 'Katya', 'Makar', 'Mapalo', 'Milla', 'Rohab', 'Sabina', 'Thomas', 'Zaid'].sort();
+
+        function createCuteMinecraftVillager() {
+            const group = new THREE.Group();
+
+            // Body color
+            const skinColor = new THREE.Color(Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.25, Math.random() * 0.3);
+            
+            // Clothes color
+            const clothesColor = new THREE.Color(Math.random(), Math.random(), Math.random());
+
+            // Head (slightly larger for cuteness)
+            const headGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const headMaterial = new THREE.MeshBasicMaterial({ color: skinColor });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = 0.8;
+            group.add(head);
+
+            // Hair
+            const hairGeometry = new THREE.BoxGeometry(1.1, 0.3, 1.1);
+            const hairMaterial = new THREE.MeshBasicMaterial({ color: Math.random() < 0.5 ? 0x8B4513 : 0xD2691E });
+            const hair = new THREE.Mesh(hairGeometry, hairMaterial);
+            hair.position.y = 1.35;
+            group.add(hair);
+
+            // Body (shirt)
+            const bodyGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.5);
+            const bodyMaterial = new THREE.MeshBasicMaterial({ color: clothesColor });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0;
+            group.add(body);
+
+            // Arms
+            const armGeometry = new THREE.BoxGeometry(0.3, 0.8, 0.3);
+            const leftArm = new THREE.Mesh(armGeometry, bodyMaterial);
+            leftArm.position.set(-0.55, 0, 0);
+            group.add(leftArm);
+            const rightArm = new THREE.Mesh(armGeometry, bodyMaterial);
+            rightArm.position.set(0.55, 0, 0);
+            group.add(rightArm);
+
+            // Legs (shorter with pants)
+            const legGeometry = new THREE.BoxGeometry(0.3, 0.5, 0.3);
+            const pantsMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(clothesColor).multiplyScalar(0.7) });
+            const leftLeg = new THREE.Mesh(legGeometry, pantsMaterial);
+            leftLeg.position.set(-0.2, -0.65, 0);
+            group.add(leftLeg);
+            const rightLeg = new THREE.Mesh(legGeometry, pantsMaterial);
+            rightLeg.position.set(0.2, -0.65, 0);
+            group.add(rightLeg);
+
+            return group;
+        }
+
+        const characters = students.map((name, index) => {
+            const character = createCuteMinecraftVillager();
+            character.position.x = (index - (students.length - 1) / 2) * 2.5;
+            scene.add(character);
+
+            const nameDiv = document.createElement('div');
+            nameDiv.textContent = name;
+            nameDiv.style.position = 'absolute';
+            nameDiv.style.fontSize = '36px'; // Increased font size
+            nameDiv.style.fontWeight = 'bold';
+            nameDiv.style.color = 'white';
+            nameDiv.style.fontFamily = 'Arial, sans-serif';
+            nameDiv.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+            document.body.appendChild(nameDiv);
+
+            return { character, nameDiv };
+        });
+
+        camera.position.set(0, 5, 30);
+        controls.update();
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+
+            controls.update();
+
+            characters.forEach(({ character, nameDiv }, index) => {
+                // Wavy movement
+                character.position.y = Math.sin(time * 0.003 + index * 0.5) * 0.3;
+                character.rotation.y = Math.sin(time * 0.002 + index * 0.3) * 0.1;
+
+                // Update name position
+                const vector = new THREE.Vector3();
+                vector.setFromMatrixPosition(character.matrixWorld);
+                vector.project(camera);
+
+                const widthHalf = window.innerWidth / 2;
+                const heightHalf = window.innerHeight / 2;
+
+                nameDiv.style.left = (vector.x * widthHalf + widthHalf) + 'px';
+                nameDiv.style.top = (-(vector.y * heightHalf) + heightHalf - 120) + 'px'; // Adjusted for bigger font
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
