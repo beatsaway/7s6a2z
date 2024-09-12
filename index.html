@@ -5,8 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cute Minecraft-style Villagers Line-up</title>
     <style>
-        body { margin: 0; overflow: hidden; }
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
         canvas { display: block; }
+        .name-label {
+            position: absolute;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5), -2px -2px 4px rgba(0,0,0,0.5);
+            text-align: center;
+            transition: font-size 0.3s ease;
+            pointer-events: none;
+            font-size: 14px; /* Reduced the default font size */
+        }
     </style>
 </head>
 <body>
@@ -14,8 +25,9 @@
     <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/js/controls/OrbitControls.js"></script>
     <script>
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x070EEB);  // Sky blue background
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
@@ -24,6 +36,14 @@
         controls.dampingFactor = 0.05;
 
         const students = ['Alisa', 'Amjad', 'Antonia', 'Aria', 'Baris', 'Hassan', 'Ilinea', 'Jasraj', 'Karim', 'Katya', 'Makar', 'Mapalo', 'Milla', 'Rohab', 'Sabina', 'Thomas', 'Zaid'].sort();
+
+        // Green meadow (plane) below the characters
+        const meadowGeometry = new THREE.PlaneGeometry(100, 100);
+        const meadowMaterial = new THREE.MeshBasicMaterial({ color: 0x228B22 }); // Green color
+        const meadow = new THREE.Mesh(meadowGeometry, meadowMaterial);
+        meadow.rotation.x = -Math.PI / 2; // Rotate to make it flat
+        meadow.position.y = -1; // Slightly below the characters
+        scene.add(meadow);
 
         function createCuteMinecraftVillager() {
             const group = new THREE.Group();
@@ -41,12 +61,6 @@
             head.position.y = 0.8;
             group.add(head);
 
-            // Hair
-            const hairGeometry = new THREE.BoxGeometry(1.1, 0.3, 1.1);
-            const hairMaterial = new THREE.MeshBasicMaterial({ color: Math.random() < 0.5 ? 0x8B4513 : 0xD2691E });
-            const hair = new THREE.Mesh(hairGeometry, hairMaterial);
-            hair.position.y = 1.35;
-            group.add(hair);
 
             // Body (shirt)
             const bodyGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.5);
@@ -79,23 +93,18 @@
 
         const characters = students.map((name, index) => {
             const character = createCuteMinecraftVillager();
-            character.position.x = (index - (students.length - 1) / 2) * 2.5;
+            character.position.x = (index - (students.length - 1) / 2) * 1.5; // Reduced spacing
             scene.add(character);
 
             const nameDiv = document.createElement('div');
             nameDiv.textContent = name;
-            nameDiv.style.position = 'absolute';
-            nameDiv.style.fontSize = '36px'; // Increased font size
-            nameDiv.style.fontWeight = 'bold';
-            nameDiv.style.color = 'white';
-            nameDiv.style.fontFamily = 'Arial, sans-serif';
-            nameDiv.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+            nameDiv.className = 'name-label';
             document.body.appendChild(nameDiv);
 
             return { character, nameDiv };
         });
 
-        camera.position.set(0, 5, 30);
+        camera.position.set(0, 2, 10);
         controls.update();
 
         function animate(time) {
@@ -108,7 +117,7 @@
                 character.position.y = Math.sin(time * 0.003 + index * 0.5) * 0.3;
                 character.rotation.y = Math.sin(time * 0.002 + index * 0.3) * 0.1;
 
-                // Update name position
+                // Update name position and size
                 const vector = new THREE.Vector3();
                 vector.setFromMatrixPosition(character.matrixWorld);
                 vector.project(camera);
@@ -116,8 +125,20 @@
                 const widthHalf = window.innerWidth / 2;
                 const heightHalf = window.innerHeight / 2;
 
-                nameDiv.style.left = (vector.x * widthHalf + widthHalf) + 'px';
-                nameDiv.style.top = (-(vector.y * heightHalf) + heightHalf - 120) + 'px'; // Adjusted for bigger font
+                const x = (vector.x * widthHalf + widthHalf);
+                const y = -(vector.y * heightHalf) + heightHalf;
+
+                nameDiv.style.left = `${x}px`;
+                nameDiv.style.top = `${y + 30}px`; // Positioned below feet
+
+                // Dynamic font size based on camera distance
+                const distance = camera.position.distanceTo(character.position);
+                const fontSize = Math.max(1, Math.min(36, 200 / distance));
+                nameDiv.style.fontSize = `${fontSize}px`;
+
+                // Adjust width for better text wrapping
+                nameDiv.style.width = `${fontSize * 5}px`;
+                nameDiv.style.marginLeft = `-${fontSize * 2.5}px`;
             });
 
             renderer.render(scene, camera);
