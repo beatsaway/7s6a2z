@@ -25,7 +25,8 @@
     <script src="https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/js/controls/OrbitControls.js"></script>
     <script>
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x770EEB);  // Sky blue background
+        scene.background = new THREE.Color(Math.random(), Math.random(), Math.random());
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -39,7 +40,8 @@
 
         // Green meadow (plane) below the characters
         const meadowGeometry = new THREE.PlaneGeometry(100, 100);
-        const meadowMaterial = new THREE.MeshBasicMaterial({ color: 0x228B22 }); // Green color
+       const meadowMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(Math.random(), Math.random(), Math.random()) });
+
         const meadow = new THREE.Mesh(meadowGeometry, meadowMaterial);
         meadow.rotation.x = -Math.PI / 2; // Rotate to make it flat
         meadow.position.y = -1; // Slightly below the characters
